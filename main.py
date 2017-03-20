@@ -22,9 +22,7 @@ Session = sessionmaker(bind=engine)
 
 
 class User(Model):
-
     __tablename__ = 'users'
-
     id = Column(Integer, primary_key=True)
     email = Column(String(80), unique=True)
     password = Column(String(255))
@@ -39,16 +37,13 @@ class User(Model):
 
 class Tag(Model):
     __tablename__ = 'tag'
-
     id = Column(Integer, primary_key=True)
     name = Column(String(60))
     description = Column(String(255))
 
 
 class Post(Model):
-
     __tablename__ = 'post'
-
     id = Column(Integer, primary_key=True)
     url = Column(String(255))
     title = Column(String(512))
@@ -75,6 +70,7 @@ Model.metadata.create_all(engine)
 @hug.post('/post/create/')
 def create_post(url:hug.types.text,
                 title:hug.types.shorter_than(LONG_DESCR_LENGTH)):
+    """This endpoint used for creating a post."""
     post = Post(url, title)
     session = Session()
     session.add(post)
