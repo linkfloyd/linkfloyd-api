@@ -1,19 +1,31 @@
-Quick readme, will be fixed later.
+# How to run dev server on Ubuntu 16.10?
 
-1. Be sure that Python3 is installed on your system. Use brew install python3 or apt-get install python3 if you're using Linux distros.
-2. Clone this repository.
-3. Optionally create virtualenvironment to install packages:
+First of all you have to be sure that you've installed Python3, and have support for virtualenvironments for Python.
 
-    sudo easy_install3.6 pip
-    sudo pip3 install virtualenv virtualenvwrapper
-    mkvirtualenv linkfloyd
+Install Python3:
 
-4. Install packages:
+    $ sudo apt-get update
+    $ sudo apt-get install -y python3.6
 
-    pip install -r requirements.txt
+Install pip, virtualenv:
 
-5. Run server:
+    $ sudo apt-get install -y python3-pip
+    $ sudo apt-get install -y python3-venv
 
-    hug -f main.py
-    
+Create a virtualenvironment to install python packages, you can put it to ~/.env/LF/
 
+    $ mkdir ~/.env/
+    $ python3 -m LF ~/.env/
+
+Change your environment to newly created one. Before running development server you have to change your environment too:
+
+    $ source ~/.env/LF/bin/activate
+
+
+Now you can install requirements:
+
+    $ pip3 install -r requirements.txt
+
+And run the development server:
+
+    $ hug -f main.py
