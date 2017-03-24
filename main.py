@@ -52,25 +52,24 @@ class ApiKey(Model):
     owner_id = Column(Integer, ForeignKey('users.id'))
     owner = relationship("User", back_populates="api_keys")
     created_on = Column('created_on', DateTime)
-    expires_on = Column('expires_on', DateTime)
 
     def __init__(self, owner_id, key=None):
         self.owner_id = owner_id
         self.key = key or uuid4().hex
         self.created_on = self.created_on or datetime.now()
-        self.expires_on = self.expires_on or self.created_on + \
-            timedelta(days=API_KEY_LIFESPAN)
-
 
     @classmethod
-    def verify(key):
+    def verify(cls, key):
         """Verify if key is valid and not expired. Return owner of key if
         key is valid."""
-        pass
+        session = Session()
+        api_key = session.query(cls).filter(cls.key.is_(key)).first()
+        if not api_key:
+            return None
+        return api_key.owner
 
     def serialize(self):
-        return {'key': self.key, 'created_on': self.created_on,
-                'expires_on': self.expires_on}
+        return {'key': self.key, 'created_on': self.created_on}
 
 
 class Tag(Model):
@@ -112,10 +111,11 @@ class Post(Model):
 
 
 Model.metadata.create_all(engine)
-
+authentication = hug.authentication.api_key(ApiKey.verify)
 
 @hug.post('/user/create/')
 def create_user(username: hug.types.text, password: hug.types.text, response):
+    print(password, type(password))
     session = Session()
     existing_user = session.query(User).filter(
         User.username.is_(username)).first()
@@ -123,7 +123,7 @@ def create_user(username: hug.types.text, password: hug.types.text, response):
         response.status = HTTP_400
         return {'success': False,
                 'errors': ['User with this username already exists']}
-    password = bcrypt.hashpw(raw_password, bcrypt.gensalt())
+    password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     session.add(User(username, password))
     session.commit()
     response.status = HTTP_201
@@ -138,7 +138,8 @@ def create_api_key(username: hug.types.text, password: hug.types.text,
     if not user:
         response.status = HTTP_404
         return
-    password_is_correct = bcrypt.checkpw(password, user.password)
+    password_is_correct = bcrypt.checkpw(password.encode('utf-8'),
+                                         user.password)
     if not password_is_correct:
         response.status = 401
         return
@@ -148,8 +149,8 @@ def create_api_key(username: hug.types.text, password: hug.types.text,
     return {'success': True, 'key': api_key.serialize()}
 
 
-@hug.post('/post/create/')
-def create_post(url: hug.types.text,
+@hug.post('/post/create/', requires=authentication)
+def create_post(user: hug.directives.user, url: hug.types.text,
                 title: hug.types.shorter_than(LONG_DESCR_LENGTH)):
     post = Post(url, title)
     session = Session()
