@@ -145,6 +145,7 @@ def create_api_key(username: hug.types.text, password: hug.types.text,
         return
     api_key = ApiKey(owner_id=user.id)
     session.add(api_key)
+    session.commit()
     session.status = HTTP_201
     return {'success': True, 'key': api_key.serialize()}
 
