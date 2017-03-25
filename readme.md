@@ -15,7 +15,7 @@ Install pip, virtualenv:
 Create a virtualenvironment to install python packages, you can put it to ~/.env/LF/
 
     $ mkdir ~/.env/
-    $ python3 -m LF ~/.env/
+    $ python3 -m venv ~/.env/
 
 Change your environment to newly created one. Before running development server you have to change your environment too:
 
